@@ -3,14 +3,19 @@ package api
 import (
 	"errors"
 	"github.com/go-ecommerce-app/config"
+	"github.com/go-ecommerce-app/internal/api/rest"
+	"github.com/go-ecommerce-app/internal/api/rest/handlers"
 	"github.com/gofiber/fiber/v2"
-	"net/http"
 )
 
 func StartServer(config config.AppConfig) error {
 	app := fiber.New()
 
-	app.Get("/health", HealthCheck)
+	restHandler := &rest.RestHandler{
+		App: app,
+	}
+
+	setupRoutes(restHandler)
 
 	err := app.Listen(":" + config.ServerPort)
 
@@ -21,6 +26,9 @@ func StartServer(config config.AppConfig) error {
 	return nil
 }
 
-func HealthCheck(ctx *fiber.Ctx) error {
-	return ctx.Status(http.StatusOK).JSON(fiber.Map{"message": "I'm alive!"})
+func setupRoutes(rh *rest.RestHandler) {
+	// user handlers
+	handlers.SetupUserRoutes(rh)
+	// transaction handlers
+	// product handlers
 }
