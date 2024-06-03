@@ -1,14 +1,21 @@
 package main
 
 import (
-	"fmt"
-	"github.com/gofiber/fiber/v2"
+	"github.com/go-ecommerce-app/config"
+	"github.com/go-ecommerce-app/internal/api"
+	"log"
 )
 
 func main() {
-	fmt.Println("Hello, World!")
+	cfg, err := config.SetupEnv()
 
-	app := fiber.New()
+	if err != nil {
+		log.Fatalf("error loading env: %v\n", err)
+	}
 
-	app.Listen(":9000")
+	err = api.StartServer(cfg)
+
+	if err != nil {
+		log.Fatalf("error starting server: %v\n", err)
+	}
 }
