@@ -8,6 +8,7 @@ import (
 
 type AppConfig struct {
 	ServerPort string
+	Dsn        string
 }
 
 func SetupEnv() (cfg AppConfig, err error) {
@@ -23,5 +24,11 @@ func SetupEnv() (cfg AppConfig, err error) {
 		return AppConfig{}, errors.New("port is not set")
 	}
 
-	return AppConfig{ServerPort: httpPort}, nil
+	dsn := os.Getenv("DSN")
+
+	if len(dsn) == 0 {
+		return AppConfig{}, errors.New("dsn is not set")
+	}
+
+	return AppConfig{ServerPort: httpPort, Dsn: dsn}, nil
 }
