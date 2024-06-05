@@ -24,12 +24,15 @@ func SetupUserRoutes(rh *rest.RestHandler) {
 		svc: svc,
 	}
 
-	// public routes
-	app.Post("/register", handler.Register)
-	app.Post("/login", handler.Login)
+	apiRoute := app.Group("/api/v1")
+
+	pubApiRoute := apiRoute.Group("/auth")
+	pubApiRoute.Post("/register", handler.Register)
+	pubApiRoute.Post("/login", handler.Login)
 
 	// private routes
-	app.Get("/profile", handler.GetUser)
+	priApiRoute := apiRoute.Group("/users", rh.Auth.Authorize)
+	priApiRoute.Get("/profile", handler.GetUser)
 }
 
 func (h *UserHandler) Register(ctx *fiber.Ctx) error {
@@ -81,7 +84,10 @@ func (h *UserHandler) Login(ctx *fiber.Ctx) error {
 }
 
 func (h *UserHandler) GetUser(ctx *fiber.Ctx) error {
+	usr := h.svc.Auth.GetCurrentUser(ctx)
+
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
 		"message": "User retrieved",
+		"data":    usr,
 	})
 }
