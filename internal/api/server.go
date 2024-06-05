@@ -6,6 +6,7 @@ import (
 	"github.com/go-ecommerce-app/internal/api/rest"
 	"github.com/go-ecommerce-app/internal/api/rest/handlers"
 	"github.com/go-ecommerce-app/internal/domain"
+	"github.com/go-ecommerce-app/internal/helper"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -32,9 +33,12 @@ func StartServer(config config.AppConfig) error {
 
 	log.Println("Migrations run successfully")
 
+	auth := helper.SetupAuth(config.AppSecret)
+
 	restHandler := &rest.RestHandler{
-		App: app,
-		Db:  db,
+		App:  app,
+		Db:   db,
+		Auth: auth,
 	}
 
 	setupRoutes(restHandler)

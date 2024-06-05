@@ -2,31 +2,32 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"github.com/go-ecommerce-app/internal/domain"
 	"github.com/go-ecommerce-app/internal/dto"
+	"github.com/go-ecommerce-app/internal/helper"
 	"github.com/go-ecommerce-app/internal/repository"
-	"log"
 )
 
 type UserService struct {
 	Repo repository.UserRepository
+	Auth helper.Auth
 }
 
 func (us *UserService) Register(input dto.UserRegister) (string, error) {
 
+	hashPassword, err := us.Auth.CreateHashPassword(input.Password)
+
+	if err != nil {
+		return "", err
+	}
+
 	user, err := us.Repo.CreateUser(domain.User{
 		Email:    input.Email,
 		Phone:    input.Phone,
-		Password: input.Password,
+		Password: hashPassword,
 	})
 
-	// generate Token
-	log.Println(user)
-
-	userInfo := fmt.Sprintf("%v, %v, %v", user.Email, user.Phone, user.UserType)
-
-	return userInfo, err
+	return us.Auth.GenerateToken(user.ID, user.Email, user.UserType)
 }
 
 func (us *UserService) LoginUser(input dto.UserLogin) (string, error) {
@@ -36,7 +37,19 @@ func (us *UserService) LoginUser(input dto.UserLogin) (string, error) {
 		return "", errors.New("user does not exist with this email")
 	}
 
-	return user.Email, nil
+	err = us.Auth.VerifyPassword(input.Password, user.Password)
+
+	if err != nil {
+		return "", err
+	}
+
+	token, err := us.Auth.GenerateToken(user.ID, user.Email, user.UserType)
+
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
 
 func (us *UserService) findUserByEmail(email string) (*domain.User, error) {
