@@ -33,6 +33,8 @@ func SetupUserRoutes(rh *rest.RestHandler) {
 	// private routes
 	priApiRoute := apiRoute.Group("/users", rh.Auth.Authorize)
 	priApiRoute.Get("/profile", handler.GetUser)
+	priApiRoute.Get("/verification-code", handler.GetVerificationCode)
+	priApiRoute.Post("/verify", handler.VerifyUser)
 }
 
 func (h *UserHandler) Register(ctx *fiber.Ctx) error {
@@ -89,5 +91,49 @@ func (h *UserHandler) GetUser(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
 		"message": "User retrieved",
 		"data":    usr,
+	})
+}
+
+func (h *UserHandler) GetVerificationCode(ctx *fiber.Ctx) error {
+	user := h.svc.Auth.GetCurrentUser(ctx)
+
+	// create verification code and update user
+	code, err := h.svc.GetVerificationCode(user)
+
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to get verification code",
+			"error":   err,
+		})
+	}
+
+	return ctx.Status(http.StatusOK).JSON(fiber.Map{
+		"message": "success",
+		"code":    code,
+	})
+}
+
+func (h *UserHandler) VerifyUser(ctx *fiber.Ctx) error {
+	usr := h.svc.Auth.GetCurrentUser(ctx)
+
+	var request = dto.VerifyUser{}
+
+	if err := ctx.BodyParser(&request); err != nil {
+		return ctx.Status(http.StatusUnprocessableEntity).JSON(fiber.Map{
+			"message": "Please provide valid input",
+		})
+	}
+
+	err := h.svc.VerifyCode(usr.ID, request.Code)
+
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to verify user",
+			"error":   err,
+		})
+	}
+
+	return ctx.Status(http.StatusOK).JSON(fiber.Map{
+		"message": "User successfully verified",
 	})
 }
