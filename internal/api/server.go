@@ -36,9 +36,10 @@ func StartServer(config config.AppConfig) error {
 	auth := helper.SetupAuth(config.AppSecret)
 
 	restHandler := &rest.RestHandler{
-		App:  app,
-		Db:   db,
-		Auth: auth,
+		App:       app,
+		Db:        db,
+		Auth:      auth,
+		AppConfig: config,
 	}
 
 	setupRoutes(restHandler)

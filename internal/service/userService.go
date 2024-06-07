@@ -3,16 +3,19 @@ package service
 import (
 	"errors"
 	"fmt"
+	"github.com/go-ecommerce-app/config"
 	"github.com/go-ecommerce-app/internal/domain"
 	"github.com/go-ecommerce-app/internal/dto"
 	"github.com/go-ecommerce-app/internal/helper"
 	"github.com/go-ecommerce-app/internal/repository"
+	"github.com/go-ecommerce-app/pkg/notification"
 	"time"
 )
 
 type UserService struct {
-	Repo repository.UserRepository
-	Auth helper.Auth
+	Repo      repository.UserRepository
+	Auth      helper.Auth
+	AppConfig config.AppConfig
 }
 
 func (us *UserService) Register(input dto.UserRegister) (string, error) {
@@ -91,7 +94,18 @@ func (us *UserService) GetVerificationCode(u domain.User) (int, error) {
 		return 0, errors.New("unable to update verification code to user")
 	}
 
+	usr, _ := us.Repo.FindUserById(u.ID)
+
+	message := fmt.Sprintf("Your verification code is: %d", code)
+
 	// send sms
+	notificationClient := notification.NewNotificationClient(us.AppConfig)
+
+	msg := notificationClient.SendSms(usr.Phone, message)
+
+	if msg != nil {
+		return 0, errors.New("unable to send sms")
+	}
 
 	return code, nil
 }
