@@ -32,6 +32,10 @@ func (us *UserService) Register(input dto.UserRegister) (string, error) {
 		Password: hashPassword,
 	})
 
+	if err != nil {
+		return "", err
+	}
+
 	return us.Auth.GenerateToken(user.ID, user.Email, user.UserType)
 }
 
@@ -98,10 +102,9 @@ func (us *UserService) GetVerificationCode(u domain.User) (int, error) {
 
 	message := fmt.Sprintf("Your verification code is: %d", code)
 
-	// send sms
-	notificationClient := notification.NewNotificationClient(us.AppConfig)
+	emailClient := notification.NewEmailClient(us.AppConfig)
 
-	msg := notificationClient.SendSms(usr.Phone, message)
+	msg := emailClient.SendEmail(usr.Email, "Verification Code", message)
 
 	if msg != nil {
 		return 0, errors.New("unable to send sms")

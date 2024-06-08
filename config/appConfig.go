@@ -13,6 +13,11 @@ type AppConfig struct {
 	TwilioAccountSid string
 	TwilioAuthToken  string
 	TwilioFromNumber string
+	MailHost         string
+	MailPort         string
+	MailUsername     string
+	MailPassword     string
+	MailFrom         string
 }
 
 func SetupEnv() (cfg AppConfig, err error) {
@@ -47,5 +52,10 @@ func SetupEnv() (cfg AppConfig, err error) {
 		TwilioAccountSid: os.Getenv("TWILIO_ACCOUNT_SID"),
 		TwilioAuthToken:  os.Getenv("TWILIO_AUTH_TOKEN"),
 		TwilioFromNumber: os.Getenv("TWILIO_FROM_NUMBER"),
+		MailHost:         os.Getenv("MAIL_HOST"),
+		MailPort:         os.Getenv("MAIL_PORT"),
+		MailUsername:     os.Getenv("MAIL_USERNAME"),
+		MailPassword:     os.Getenv("MAIL_PASSWORD"),
+		MailFrom:         os.Getenv("MAIL_FROM"),
 	}, nil
 }
